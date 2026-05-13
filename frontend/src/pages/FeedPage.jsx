@@ -12,6 +12,7 @@ export default function FeedPage() {
     const currentPageRef = useRef(1)
     const lastPageRef = useRef(1)
     const loadingRef = useRef(false)
+    const scrollContainerRef = useRef(null)
 
     const fetchPosts = useCallback(async (page = 1) => {
         if (loadingRef.current) return
@@ -40,17 +41,16 @@ export default function FeedPage() {
     }, [fetchPosts])
 
     useEffect(() => {
+        const el = scrollContainerRef.current
+        if (!el) return
         const handleScroll = () => {
-            const scrollTop    = window.scrollY
-            const windowHeight = window.innerHeight
-            const docHeight    = document.documentElement.scrollHeight
-            const nearBottom   = scrollTop + windowHeight >= docHeight - 300
+            const nearBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - 300
             if (nearBottom && !loadingRef.current && currentPageRef.current < lastPageRef.current) {
                 fetchPosts(currentPageRef.current + 1)
             }
         }
-        window.addEventListener('scroll', handleScroll)
-        return () => window.removeEventListener('scroll', handleScroll)
+        el.addEventListener('scroll', handleScroll)
+        return () => el.removeEventListener('scroll', handleScroll)
     }, [fetchPosts])
 
     const handlePostCreated = (newPost) => setPosts(prev => [newPost, ...prev])
@@ -202,7 +202,7 @@ export default function FeedPage() {
 
                                 {/* ── Center Feed ──────────────────────────────── */}
                                 <div className="col-xl-6 col-lg-6 col-md-12 col-sm-12">
-                                    <div className="_layout_middle_wrap">
+                                    <div className="_layout_middle_wrap" ref={scrollContainerRef}>
                                         <div className="_layout_middle_inner">
 
                                             {/* Stories — exact structure from original HTML */}
