@@ -1,0 +1,18 @@
+# Environment files — never commit real secrets
+backend/.env
+frontend/.env
+infrastructure/.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# SSL certs (add your own)
+infrastructure/nginx/ssl/
+
+# Editor
+.vscode/
+.idea/

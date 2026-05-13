@@ -1,0 +1,28 @@
+html, body, #root {
+    height: auto !important;
+    overflow: auto !important;
+}
+
+._layout_main_wrapper {
+    height: auto !important;
+    min-height: 100vh;
+    overflow: visible !important;
+}
+
+._main_layout {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+._layout_main {
+    height: auto !important;
+    overflow: visible !important;
+}
+
+
+._profile_dropdown_show {
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
