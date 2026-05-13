@@ -1,62 +1,113 @@
-# MyApp — Dockerized Laravel + ReactJS
+# BuddyScript — Dockerized Laravel + ReactJS
+
+## Requirements
+
+Before running the application, make sure you have **Docker Desktop** installed and running.
+
+### Install Docker Desktop
+
+**Windows**
+1. Download from https://www.docker.com/products/docker-desktop
+2. Run the installer and follow the steps
+3. After install, open Docker Desktop and wait until it says **"Engine running"**
+4. Make sure **"Use WSL 2 based engine"** is enabled in Settings → General
+
+**Mac**
+1. Download from https://www.docker.com/products/docker-desktop
+2. Open the `.dmg` file and drag Docker to Applications
+3. Launch Docker from Applications and wait until it says **"Engine running"**
+
+**Linux (Ubuntu/Debian)**
+```bash
+sudo apt-get update
+sudo apt-get install -y ca-certificates curl gnupg
+sudo install -m 0755 -d /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo $VERSION_CODENAME) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt-get update
+sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+---
+
+## Quick Start
+
+### Windows (Git Bash)
+```bash
+git clone <your-repo-url>
+cd buddyscript-application
+bash run.sh
+```
+
+### Mac / Linux
+```bash
+git clone <your-repo-url>
+cd buddyscript-application
+bash run.sh
+```
+
+The `run.sh` script will:
+- Install `make` automatically if not found
+- Copy all `.env` files from the provided examples
+- Build all Docker images
+- Start all containers
+- Generate the Laravel app key
+- Run database migrations
+- Seed the database
+
+Once complete:
+- **Backend (Laravel)** → http://localhost:8000
+- **Frontend (React)** → http://localhost:3000
+
+---
 
 ## Project Structure
 
 ```
 .
-├── backend/                        # ← Your Laravel app lives here (empty to start)
+├── backend/                        # Laravel application
 │   └── .dockerignore
 │
-├── frontend/                       # ← Your ReactJS app lives here (empty to start)
+├── frontend/                       # ReactJS application
 │   └── .dockerignore
 │
 ├── infrastructure/                 # All Docker & infra config
 │   ├── docker/
 │   │   ├── backend/
 │   │   │   ├── Dockerfile          # Multi-stage: development | production
-│   │   │   ├── .env.example        # Laravel env template
+│   │   │   ├── .env.example        # Laravel env (auto-copied on setup)
 │   │   │   └── php/
 │   │   │       ├── php-dev.ini
 │   │   │       ├── php-prod.ini
 │   │   │       └── xdebug.ini
 │   │   └── frontend/
 │   │       ├── Dockerfile          # Multi-stage: development | production
-│   │       ├── .env.example        # Vite/React env template
+│   │       ├── .env.example        # React env (auto-copied on setup)
 │   │       └── nginx.conf          # SPA fallback routing (prod)
 │   ├── docker-compose.dev.yml
 │   ├── docker-compose.prod.yml
-│   ├── .env.example                # MySQL production secrets
+│   ├── .env.example                # MySQL secrets (auto-copied on setup)
 │   ├── nginx/
 │   │   └── conf.d/
 │   │       └── backend.conf        # Nginx → PHP-FPM proxy config
 │   └── mysql/
 │       └── init.sql                # Creates app DB + test DB on first run
 │
-├── Makefile                        # Single-command operations
+├── Makefile                        # All dev commands
+├── run.sh                          # Auto-install make + run setup
+├── run.bat                         # Windows CMD alternative
 └── .gitignore
 ```
 
-## Quick Start (Development)
+---
 
-```bash
-# 1. Clone the repo
-git clone <your-repo> && cd <your-repo>
-
-# 2. Drop your Laravel app into backend/ and React app into frontend/
-
-# 3. First-time setup — copies .env files, builds images, runs migrations
-make setup
-
-# Done!
-#   Backend  → http://localhost:8000
-#   Frontend → http://localhost:3000
-```
-
-## Common Commands
+## All Commands
 
 | Command | Description |
 |---|---|
-| `make setup` | **First-time** setup (build, start, migrate) |
+| `make setup` | **First-time** setup (build, start, migrate, seed) |
 | `make up` | Start all services (dev) |
 | `make up ENV=prod` | Start all services (prod) |
 | `make down` | Stop all services |
@@ -66,34 +117,36 @@ make setup
 | `make ps` | List running containers |
 | `make shell-backend` | Shell into the Laravel container |
 | `make shell-frontend` | Shell into the React container |
-| `make migrate` | Run Laravel migrations |
-| `make migrate-fresh` | Fresh migration + seeders |
-| `make fresh` | Full wipe + rebuild (nuclear reset) |
+| `make migrate` | Run migrations |
+| `make migrate-fresh` | Fresh migration + seed |
+| `make fresh` | Full wipe + rebuild + fresh migrate |
 
-## Environment Files
-
-`make setup` auto-copies these from their `.example` templates:
-
-| File (auto-created) | Copied from | Purpose |
-|---|---|---|
-| `backend/.env` | `infrastructure/docker/backend/.env.example` | Laravel config |
-| `frontend/.env` | `infrastructure/docker/frontend/.env.example` | Vite/React config |
-| `infrastructure/.env` | `infrastructure/.env.example` | MySQL prod secrets |
-
-## Production Deployment
-
-```bash
-# Fill in real credentials in each .env, then:
-make up ENV=prod
-```
-
-> **SSL**: Place your certs in `infrastructure/nginx/ssl/` and update `backend.conf` for HTTPS.
+---
 
 ## Services & Ports
 
-| Service | Dev Port | Prod Port | Description |
-|---|---|---|---|
-| `nginx` | 8000 | 80 / 443 | Serves Laravel via PHP-FPM |
-| `frontend` | 3000 | 3000 | React (Vite dev / Nginx prod) |
-| `mysql` | 3306 | internal | MySQL 8.0 |
-| `backend` | internal | internal | PHP-FPM |
+| Service | Port | Description |
+|---|---|---|
+| Laravel (Nginx) | 8000 | Backend API |
+| React (Vite) | 3000 | Frontend app |
+| MySQL | 3306 | Database |
+
+---
+
+## Troubleshooting
+
+**Docker Desktop not running**
+Make sure Docker Desktop is open and the engine is running before running any command.
+
+**Port already in use**
+If ports 8000, 3000, or 3306 are in use by another app, stop that app or change the ports in `infrastructure/docker-compose.dev.yml`.
+
+**make: command not found (Windows)**
+Run using `bash run.sh` from Git Bash — it will install `make` automatically. Or from Command Prompt run `run.bat`.
+
+**Fresh reset**
+If something is broken and you want to start from scratch:
+```bash
+make fresh
+```
+This wipes all volumes, rebuilds images, and re-runs migrations and seeders.
