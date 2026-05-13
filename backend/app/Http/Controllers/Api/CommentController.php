@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreCommentRequest;
 use App\Http\Resources\CommentResource;
 use App\Models\Comment;
+use App\Models\Like;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -21,14 +22,20 @@ class CommentController extends Controller
         }
 
         $comments = $post->comments()
-            ->with(['user', 'likes'])
+            ->with('user')
             ->latest()
             ->paginate(10);
 
         $userId = $request->user()->id;
 
-        $comments->getCollection()->transform(function ($comment) use ($userId) {
-            $comment->is_liked_by_me = $comment->likes->contains('user_id', $userId);
+        $likedIds = Like::where('user_id', $userId)
+            ->where('likeable_type', Comment::class)
+            ->whereIn('likeable_id', $comments->pluck('id'))
+            ->pluck('likeable_id')
+            ->flip();
+
+        $comments->getCollection()->transform(function ($comment) use ($likedIds) {
+            $comment->is_liked_by_me = $likedIds->has($comment->id);
             return $comment;
         });
 

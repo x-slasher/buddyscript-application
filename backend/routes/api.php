@@ -18,8 +18,8 @@ use App\Http\Controllers\Api\ReplyController;
 
 // public routes
 Route::prefix('user')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login',    [AuthController::class, 'login']);
+    Route::post('register', [AuthController::class, 'register'])->middleware('throttle:10,1');
+    Route::post('login',    [AuthController::class, 'login'])->middleware('throttle:5,1');
 });
 
 // protected routes

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
+import LikesModal from './LikesModal'
 
 function timeAgo(dateStr) {
     const date = new Date(dateStr.replace(' ', 'T') + 'Z')
@@ -16,6 +17,7 @@ export default function ReplyItem({ reply, onDelete }) {
     const [liked, setLiked] = useState(reply.is_liked_by_me)
     const [likesCount, setLikesCount] = useState(reply.likes_count)
     const [likeLoading, setLikeLoading] = useState(false)
+    const [showLikesModal, setShowLikesModal] = useState(false)
 
     const handleLike = async () => {
         if (likeLoading) return
@@ -79,8 +81,17 @@ export default function ReplyItem({ reply, onDelete }) {
                             color: liked ? '#1890ff' : '#65676b',
                         }}
                     >
-                        Like {likesCount > 0 && `(${likesCount})`}
+                        Like
                     </span>
+                    {likesCount > 0 && (
+                        <span
+                            onClick={() => setShowLikesModal(true)}
+                            style={{ fontSize: 11, cursor: 'pointer', color: '#65676b' }}
+                            title="See who liked this"
+                        >
+                            ({likesCount})
+                        </span>
+                    )}
                     {user?.id === reply.user?.id && (
                         <span
                             onClick={handleDelete}
@@ -92,6 +103,12 @@ export default function ReplyItem({ reply, onDelete }) {
                     <span style={{ fontSize: 11, color: '#999' }}>{timeAgo(reply.created_at)}</span>
                 </div>
             </div>
+
+            <LikesModal
+                isOpen={showLikesModal}
+                onClose={() => setShowLikesModal(false)}
+                endpoint={`/replies/${reply.id}/likes`}
+            />
         </div>
     )
 }

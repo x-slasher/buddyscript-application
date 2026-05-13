@@ -26,7 +26,7 @@ export default function RegisterPage() {
         setErrors({})
         try {
             await register(form)
-            navigate('/login')
+            navigate('/feed')
         } catch (err) {
             if (err.response?.data?.errors) {
                 setErrors(err.response.data.errors)

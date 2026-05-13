@@ -103,6 +103,15 @@ Once complete:
 
 ---
 
+
+**Notes:**
+- `likes` is a polymorphic table — `likeable_type` + `likeable_id` point to either a `Post`, `Comment`, or `Reply`
+- `likes_count`, `comments_count`, `replies_count` are denormalized counters updated atomically on every like/comment/reply action to avoid expensive `COUNT(*)` queries at read time
+- `deleted_at` on posts, comments, and replies enables soft deletes — records are retained in the database so related data (e.g. replies on a deleted comment) resolves correctly
+- `personal_access_tokens` is managed by Laravel Sanctum
+
+---
+
 ## All Commands
 
 | Command | Description |

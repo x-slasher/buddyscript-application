@@ -2,9 +2,10 @@ import { useState } from 'react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import ReplyItem from './ReplyItem'
+import LikesModal from './LikesModal'
 
 function timeAgo(dateStr) {
-    const diff = Math.floor((new Date() - new Date(dateStr)) / 1000)
+    const diff = Math.floor((new Date() - new Date(dateStr.replace(' ', 'T') + 'Z')) / 1000)
     if (diff < 60) return `${diff}s`
     if (diff < 3600) return `${Math.floor(diff / 60)}m`
     if (diff < 86400) return `${Math.floor(diff / 3600)}h`
@@ -23,6 +24,7 @@ export default function CommentItem({ comment, onDelete }) {
     const [showReplyBox, setShowReplyBox] = useState(false)
     const [replyLoading, setReplyLoading] = useState(false)
     const [repliesCount, setRepliesCount] = useState(comment.replies_count)
+    const [showLikesModal, setShowLikesModal] = useState(false)
 
     const handleLike = async () => {
         if (likeLoading) return
@@ -124,8 +126,17 @@ export default function CommentItem({ comment, onDelete }) {
                             color: liked ? '#1890ff' : '#65676b',
                         }}
                     >
-                        Like {likesCount > 0 && `(${likesCount})`}
+                        Like
                     </span>
+                    {likesCount > 0 && (
+                        <span
+                            onClick={() => setShowLikesModal(true)}
+                            style={{ fontSize: 12, cursor: 'pointer', color: '#65676b' }}
+                            title="See who liked this"
+                        >
+                            ({likesCount})
+                        </span>
+                    )}
                     <span
                         onClick={() => setShowReplyBox(!showReplyBox)}
                         style={{ fontSize: 12, cursor: 'pointer', fontWeight: 500, color: '#65676b' }}
@@ -193,6 +204,12 @@ export default function CommentItem({ comment, onDelete }) {
                 </div>
 
             </div>
+
+            <LikesModal
+                isOpen={showLikesModal}
+                onClose={() => setShowLikesModal(false)}
+                endpoint={`/comments/${comment.id}/likes`}
+            />
         </div>
     )
 }

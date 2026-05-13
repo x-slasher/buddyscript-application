@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Resources\PostResource;
+use App\Models\Like;
 use App\Models\Post;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -15,15 +16,21 @@ class PostController extends Controller
 
     public function index(Request $request): JsonResponse
     {
-        $posts = Post::with(['user', 'likes'])
+        $posts = Post::with('user')
             ->visibleTo($request->user())
             ->latest()
             ->paginate(10);
 
         $userId = $request->user()->id;
 
-        $posts->getCollection()->transform(function ($post) use ($userId) {
-            $post->is_liked_by_me = $post->likes->contains('user_id', $userId);
+        $likedIds = Like::where('user_id', $userId)
+            ->where('likeable_type', Post::class)
+            ->whereIn('likeable_id', $posts->pluck('id'))
+            ->pluck('likeable_id')
+            ->flip();
+
+        $posts->getCollection()->transform(function ($post) use ($likedIds) {
+            $post->is_liked_by_me = $likedIds->has($post->id);
             return $post;
         });
 
@@ -64,8 +71,11 @@ class PostController extends Controller
             ], 403);
         }
 
-        $post->load(['user', 'likes']);
-        $post->is_liked_by_me = $post->likes->contains('user_id', $request->user()->id);
+        $post->load('user');
+        $post->is_liked_by_me = Like::where('user_id', $request->user()->id)
+            ->where('likeable_type', Post::class)
+            ->where('likeable_id', $post->id)
+            ->exists();
 
         return response()->json([
             'data' => new PostResource($post),

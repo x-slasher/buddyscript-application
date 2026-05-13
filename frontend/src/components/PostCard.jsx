@@ -2,6 +2,7 @@ import { useState } from 'react'
 import api from '../api/axios'
 import { useAuth } from '../context/AuthContext'
 import CommentItem from './CommentItem'
+import LikesModal from './LikesModal'
 
 function timeAgo(dateStr) {
     const date = new Date(dateStr.replace(' ', 'T') + 'Z')
@@ -24,6 +25,7 @@ export default function PostCard({ post, onDelete }) {
     const [commentLoading, setCommentLoading] = useState(false)
     const [commentsCount, setCommentsCount] = useState(post.comments_count)
     const [showDropdown, setShowDropdown] = useState(false)
+    const [showLikesModal, setShowLikesModal] = useState(false)
 
     const handleLike = async () => {
         if (likeLoading) return
@@ -187,7 +189,11 @@ export default function PostCard({ post, onDelete }) {
 
             {/* likes + comments count row */}
             <div className="_feed_inner_timeline_total_reacts _padd_r24 _padd_l24 _mar_b26">
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div
+                    style={{ display: 'flex', alignItems: 'center', gap: 6, cursor: likesCount > 0 ? 'pointer' : 'default' }}
+                    onClick={() => likesCount > 0 && setShowLikesModal(true)}
+                    title={likesCount > 0 ? 'See who liked this' : ''}
+                >
                     {likesCount > 0 && (
                         <div style={{
                             width: 22,
@@ -312,6 +318,12 @@ export default function PostCard({ post, onDelete }) {
                 </div>
 
             </div>
+
+            <LikesModal
+                isOpen={showLikesModal}
+                onClose={() => setShowLikesModal(false)}
+                endpoint={`/posts/${post.id}/likes`}
+            />
         </div>
     )
 }
