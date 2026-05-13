@@ -51,6 +51,8 @@ setup:
 	@sleep 8
 	@echo "→ Generating Laravel app key..."
 	$(ARTISAN) key:generate
+	@echo "→ Creating storage symlink..."
+	$(ARTISAN) storage:link
 	@echo "→ Running migrations..."
 	$(ARTISAN) migrate --force
 	@echo "→ Seeding database..."
@@ -117,4 +119,5 @@ fresh:
 	$(COMPOSE) up -d
 	@sleep 8
 	$(ARTISAN) key:generate
+	$(ARTISAN) storage:link
 	$(ARTISAN) migrate:fresh --seed
